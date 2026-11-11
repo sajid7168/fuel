@@ -141,6 +141,9 @@
     flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);
     cursor:pointer;background:var(--card);overflow:hidden;position:relative;text-align:center;padding:16px}
   .shot .cam{color:var(--dim)}
+  .shot.small{min-height:118px;border-radius:14px}
+  .shotlbl{font-size:.74rem;color:var(--muted);font-weight:600;margin-bottom:6px}
+  .ostat{font-size:.74rem;color:var(--skyink);margin-top:6px;min-height:1.1em;font-weight:600}
   .shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .shot .tag{position:absolute;bottom:9px;right:9px;background:rgba(31,34,80,.72);color:#fff;
     font-size:.7rem;padding:6px 11px;border-radius:999px;display:flex;align-items:center;gap:5px}
@@ -165,7 +168,7 @@
 
   <!-- ===== HOME ===== -->
   <section class="screen on" id="s-home">
-    <div class="brand"><span class="ir" data-ic="fuel" data-sz="24"></span>Fuel<span class="r">Track</span></div>
+    <div class="brand"><span class="ir" data-ic="fuel" data-sz="24"></span>Fuel<span class="r">Track</span><span style="font-size:.62rem;color:var(--dim);font-weight:700;margin-left:7px;align-self:center">v2</span></div>
 
     <div class="vcard">
       <div class="vtop">
@@ -357,8 +360,10 @@ function tripCard(t,active){var s=tripStats(t);
     '<div class="c"><div class="v">'+rsShort(s.cost)+'</div><div class="k">fuel cost</div></div></div></div>';}
 
 function renderHistory(){var f=sortedFills().reverse();
-  document.getElementById("hist-list").innerHTML=f.length?f.map(fillRow).join(""):
-    '<div class="empty"><div class="big">'+ic("receipt",40)+'</div>No fill-ups logged yet.</div>';}
+  var head=f.length?'<div class="sec">'+f.length+' fill-up'+(f.length===1?"":"s")+' <a onclick="clearHistory()" style="color:var(--red)">Clear all</a></div>':'';
+  document.getElementById("hist-list").innerHTML=head+(f.length?f.map(fillRow).join(""):
+    '<div class="empty"><div class="big">'+ic("receipt",40)+'</div>No fill-ups logged yet.</div>');}
+window.clearHistory=function(){if(!confirm("Delete ALL fill-ups? This can’t be undone. (Your trips stay.)"))return;mem.fills=[];save();go("history");};
 
 function renderStats(){var body=document.getElementById("stats-body"),f=sortedFills();
   if(f.length<2){body.innerHTML='<div class="empty"><div class="big">'+ic("chart",40)+'</div>Log at least two fill-ups<br>to see your trends.</div>';return;}
@@ -394,37 +399,34 @@ function barChart(series){if(!series.length)return "";
 /* ---------- scan ---------- */
 var draft=null,ocrStatus={odo:"",pump:""},curStep=1;
 function ocrNote(tag){return ocrStatus[tag]?'<div class="hint" style="color:var(--skyink)"><span>'+ocrStatus[tag]+'</span></div>':'';}
-window.openScan=function(){startDraft();scanStep(1);document.getElementById("ov-scan").classList.add("on");};
-window.openScanManual=function(){startDraft();scanStep(3);document.getElementById("ov-scan").classList.add("on");};
+window.openScan=function(){startDraft();renderScan();document.getElementById("ov-scan").classList.add("on");};
+window.openScanManual=window.openScan;
+function tileHTML(which){return '<div class="shot small" id="tile-'+which+'" onclick="pick(\''+which+'\')"></div>';}
+function updateTile(which){var el=document.getElementById("tile-"+which);if(!el)return;
+  var img=which==="odo"?draft.odoImg:draft.pumpImg;
+  el.innerHTML=img?'<img src="'+img+'"><div class="tag">'+ic("refresh",13)+' Retake</div>':'<div class="cam">'+ic("camera",32)+'</div><div style="font-size:.76rem">Tap to capture</div>';}
+function renderScan(){var at=activeTrip(),s=document.getElementById("scanSheet");
+  s.innerHTML='<div class="grip"></div><h3>Add fill-up</h3>'+
+    '<div class="step">'+ic("camera",16)+'Snap the meters, or just type the numbers</div>'+
+    '<div class="two">'+
+      '<div><div class="shotlbl">Odometer</div>'+tileHTML("odo")+'<div class="ostat" id="stat-odo"></div></div>'+
+      '<div><div class="shotlbl">Pump</div>'+tileHTML("pump")+'<div class="ostat" id="stat-pump"></div></div>'+
+    '</div>'+
+    '<label>Odometer (km)</label><input type="number" id="d-odo" inputmode="decimal" value="'+draft.odo+'" placeholder="e.g. 12250" oninput="recalc()">'+
+    '<div class="two"><div><label>Litres</label><input type="number" id="d-lit" inputmode="decimal" value="'+draft.litres+'" placeholder="14.1" oninput="link(\'lit\')"></div>'+
+    '<div><label>Price / litre (Rs.)</label><input type="number" id="d-price" inputmode="decimal" value="'+draft.price+'" placeholder="272.5" oninput="link(\'price\')"></div></div>'+
+    '<label>Total paid (Rs.)</label><input type="number" id="d-tot" inputmode="decimal" value="'+draft.total+'" placeholder="3948" oninput="link(\'tot\')">'+
+    '<label>Date</label><input type="date" id="d-date" value="'+new Date(draft.ts).toISOString().slice(0,10)+'">'+
+    (at?'<div class="hint">'+ic("route",16)+'<span>Added to active trip: <b style="color:var(--lavink)">'+esc(at.name)+'</b></span></div>':'')+
+    '<div class="calcbox" id="d-calc"></div>'+
+    '<button class="pbtn" style="margin-top:18px" onclick="saveFill()">Save fill-up</button>'+
+    '<button class="gbtn" onclick="closeScanWrap()">Cancel</button>';
+  updateTile("odo");updateTile("pump");setTimeout(recalc,30);}
 function startDraft(){var f=sortedFills(),prev=f.length?f[f.length-1]:null;ocrStatus={odo:"",pump:""};
-  draft={odoImg:null,pumpImg:null,odo:"",litres:"",total:"",ts:Date.now(),prevOdo:prev?prev.odo:null};}
+  var lp=mem.lastPrice;if(lp==null&&prev&&prev.litres>0&&prev.total>0)lp=prev.total/prev.litres;
+  draft={odoImg:null,pumpImg:null,odo:"",litres:"",total:"",price:(lp!=null?String(Math.round(lp*100)/100):""),ts:Date.now(),prevOdo:prev?prev.odo:null};}
 function closeScan(){document.getElementById("ov-scan").classList.remove("on");draft=null;}
 window.closeScanWrap=closeScan;
-function scanStep(n){curStep=n;var s=document.getElementById("scanSheet");
-  if(n===1){s.innerHTML='<div class="grip"></div><h3>Scan odometer</h3><div class="step">'+ic("camera",16)+'Step 1 of 3 · snap your car’s km reading</div>'+
-    shotBox("odo")+ocrNote("odo")+'<div class="hint">'+ic("bulb",16)+'<span>Frame the number panel with the whole reading in focus.</span></div>'+
-    '<button class="pbtn" style="margin-top:18px" '+(draft.odoImg?"":"disabled")+' onclick="scanStep(2)">Next: pump →</button>'+
-    '<button class="gbtn" onclick="closeScanWrap()">Cancel</button>';}
-  else if(n===2){s.innerHTML='<div class="grip"></div><h3>Scan the pump</h3><div class="step">'+ic("camera",16)+'Step 2 of 3 · snap the petrol pump display</div>'+
-    shotBox("pump")+ocrNote("pump")+'<div class="hint">'+ic("bulb",16)+'<span>Capture the litres and total amount paid. The app works out the rate.</span></div>'+
-    '<button class="pbtn" style="margin-top:18px" '+(draft.pumpImg?"":"disabled")+' onclick="scanStep(3)">Next: confirm →</button>'+
-    '<button class="gbtn" onclick="scanStep(1)">← Back</button>';}
-  else{var at=activeTrip(),scanned=(draft.odoImg||draft.pumpImg);
-    s.innerHTML='<div class="grip"></div><h3>Confirm readings</h3>'+
-      '<div class="step">'+(scanned?ic("check",16)+'Auto-read from your photos · tap any value to fix':ic("pencil",15)+'Enter your fill-up details')+'</div>'+
-      '<label>Odometer (km)</label><input type="number" id="d-odo" inputmode="decimal" value="'+draft.odo+'" placeholder="e.g. 12250" oninput="recalc()">'+
-      '<div class="two"><div><label>Litres filled</label><input type="number" id="d-lit" inputmode="decimal" value="'+draft.litres+'" placeholder="e.g. 14.1" oninput="recalc()"></div>'+
-      '<div><label>Total paid (Rs.)</label><input type="number" id="d-tot" inputmode="decimal" value="'+draft.total+'" placeholder="e.g. 3948" oninput="recalc()"></div></div>'+
-      '<label>Date</label><input type="date" id="d-date" value="'+new Date(draft.ts).toISOString().slice(0,10)+'">'+
-      (at?'<div class="hint">'+ic("route",16)+'<span>Added to active trip: <b style="color:var(--lavink)">'+esc(at.name)+'</b></span></div>':'')+
-      '<div class="calcbox" id="d-calc"></div>'+
-      '<button class="pbtn" style="margin-top:18px" onclick="saveFill()">Save fill-up</button>'+
-      '<button class="gbtn" onclick="'+(scanned?'scanStep(2)':'closeScanWrap()')+'">'+(scanned?'← Back':'Cancel')+'</button>';
-    setTimeout(recalc,30);}}
-window.scanStep=scanStep;
-function shotBox(which){var img=which==="odo"?draft.odoImg:draft.pumpImg;
-  if(img)return '<div class="shot" onclick="pick(\''+which+'\')"><img src="'+img+'"><div class="tag">'+ic("refresh",14)+' Retake</div></div>';
-  return '<div class="shot" onclick="pick(\''+which+'\')"><div class="cam">'+ic("camera",44)+'</div><div>Tap to open camera</div></div>';}
 var pickWhich=null;
 window.pick=function(which){pickWhich=which;document.getElementById("camInput").click();};
 function resizeImg(src,cb){var img=new Image();img.onload=function(){var mx=1000,w=img.width,h=img.height;
@@ -434,13 +436,14 @@ function resizeImg(src,cb){var img=new Image();img.onload=function(){var mx=1000
 document.getElementById("camInput").addEventListener("change",function(e){var file=e.target.files[0];e.target.value="";if(!file)return;
   var rd=new FileReader();rd.onload=function(ev){resizeImg(ev.target.result,applyPhoto);};rd.readAsDataURL(file);});
 function applyPhoto(data){
-  if(pickWhich==="odo"){if(!draft)return;draft.odoImg=data;scanStep(1);requestOCR(data,"odo");}
-  else if(pickWhich==="pump"){if(!draft)return;draft.pumpImg=data;scanStep(2);requestOCR(data,"pump");}
+  if(pickWhich==="odo"||pickWhich==="pump"){if(!draft)return;
+    if(pickWhich==="odo")draft.odoImg=data;else draft.pumpImg=data;
+    updateTile(pickWhich);var st=document.getElementById("stat-"+pickWhich);if(st)st.textContent="⏳ Reading…";
+    requestOCR(data,pickWhich);}
   else if(pickWhich&&pickWhich.indexOf("add:")===0){var id=pickWhich.slice(4);
     mem.fills.forEach(function(f){if(f.id===id){f.photos=f.photos||[];f.photos.push(data);}});save();editFill(id);}}
-function requestOCR(data,tag){if(!window.AndroidOCR||!window.AndroidOCR.recognize)return;
-  ocrStatus[tag]="⏳ Reading the numbers…";if(curStep===(tag==="odo"?1:2))scanStep(curStep);
-  try{window.AndroidOCR.recognize(data,tag);}catch(e){ocrStatus[tag]="";}}
+function requestOCR(data,tag){if(!window.AndroidOCR||!window.AndroidOCR.recognize){var st=document.getElementById("stat-"+tag);if(st)st.textContent="Type the number below";return;}
+  try{window.AndroidOCR.recognize(data,tag);}catch(e){}}
 function parseOdo(t){var g=(String(t).replace(/[,\s]/g,'').match(/\d{3,7}/g)||[]);if(!g.length)return null;
   g.sort(function(a,b){return b.length-a.length||Number(b)-Number(a);});return Number(g[0]);}
 function parsePump(t){var nums=(String(t).match(/\d+(?:\.\d+)?/g)||[]).map(Number).filter(function(n){return n>0;});
@@ -448,21 +451,22 @@ function parsePump(t){var nums=(String(t).match(/\d+(?:\.\d+)?/g)||[]).map(Numbe
   var cand=nums.filter(function(n){return n>0&&n<=70;});
   if(cand.length){var dec=cand.filter(function(n){return n%1!==0;});litres=dec.length?Math.max.apply(null,dec):Math.max.apply(null,cand);}
   if(litres===total)litres=null;return {litres:litres,total:total};}
-window.__ocrResult=function(tag,text){
-  if(!draft)return;
-  if(tag==="odo"){var n=parseOdo(text);
-    if(n!=null){draft.odo=String(n);ocrStatus.odo="✓ Read: "+n+" — confirm on next screen";}
-    else ocrStatus.odo="Couldn’t read it clearly — type it in";
-    if(curStep===1)scanStep(1);
-    if(curStep===3&&document.getElementById("d-odo")&&draft.odo){document.getElementById("d-odo").value=draft.odo;recalc();}}
-  else if(tag==="pump"){var p=parsePump(text),got=[];
-    if(p.litres!=null){draft.litres=String(p.litres);got.push(p.litres+" L");}
-    if(p.total!=null){draft.total=String(p.total);got.push("Rs."+p.total);}
-    ocrStatus.pump=got.length?("✓ Read: "+got.join(" · ")+" — confirm next"):"Couldn’t read it clearly — type it in";
-    if(curStep===2)scanStep(2);
-    if(curStep===3){if(document.getElementById("d-lit")&&draft.litres)document.getElementById("d-lit").value=draft.litres;
-      if(document.getElementById("d-tot")&&draft.total)document.getElementById("d-tot").value=draft.total;recalc();}}
+window.__ocrResult=function(tag,text){if(!draft)return;
+  if(tag==="odo"){var n=parseOdo(text),st=document.getElementById("stat-odo");
+    if(n!=null){draft.odo=String(n);var el=document.getElementById("d-odo");if(el)el.value=draft.odo;if(st)st.textContent="✓ "+n+" — edit if wrong";}
+    else if(st)st.textContent="Couldn’t read — type it below";recalc();}
+  else if(tag==="pump"){var p=parsePump(text),st=document.getElementById("stat-pump"),got=[];
+    if(p.litres!=null){draft.litres=String(p.litres);var l=document.getElementById("d-lit");if(l)l.value=draft.litres;got.push(p.litres+" L");}
+    if(p.total!=null){draft.total=String(p.total);var tt=document.getElementById("d-tot");if(tt)tt.value=draft.total;got.push("Rs."+p.total);}
+    if(p.litres!=null&&p.total!=null&&p.litres>0){var pr=document.getElementById("d-price");if(pr){pr.value=String(Math.round(p.total/p.litres*100)/100);draft.price=pr.value;}}
+    if(st)st.textContent=got.length?("✓ "+got.join(" · ")+" — edit if wrong"):"Couldn’t read — type it below";recalc();}
 };
+function setVal(id,v){var e=document.getElementById(id);if(e)e.value=(v==null||isNaN(v))?"":String(Math.round(v*100)/100);}
+window.link=function(src){var lit=parseFloat(val("d-lit")),price=parseFloat(val("d-price")),tot=parseFloat(val("d-tot"));
+  if(src==="lit"){if(!isNaN(lit)&&!isNaN(price))setVal("d-tot",lit*price);else if(!isNaN(lit)&&!isNaN(tot))setVal("d-price",tot/lit);}
+  else if(src==="price"){if(!isNaN(lit)&&!isNaN(price))setVal("d-tot",lit*price);}
+  else if(src==="tot"){if(!isNaN(lit)&&!isNaN(tot))setVal("d-price",tot/lit);else if(!isNaN(price)&&price>0&&!isNaN(tot))setVal("d-lit",tot/price);}
+  recalc();};
 window.recalc=function(){var odo=parseFloat(val("d-odo")),lit=parseFloat(val("d-lit")),tot=parseFloat(val("d-tot"));
   var box=document.getElementById("d-calc");if(!box)return;
   if(isNaN(lit)||lit<=0||isNaN(odo)){box.classList.remove("show");return;}
@@ -472,10 +476,12 @@ window.recalc=function(){var odo=parseFloat(val("d-odo")),lit=parseFloat(val("d-
   else txt=draft.prevOdo==null?'First entry — this sets your starting odometer.':'Odometer should be above your last ('+Math.round(draft.prevOdo).toLocaleString()+' km).';
   if(rate)txt+='<br><span style="color:#2f6fd0">Rate: Rs.'+rate.toFixed(1)+'/L</span>';
   box.innerHTML=txt;box.classList.add("show");};
-window.saveFill=function(){var odo=parseFloat(val("d-odo")),lit=parseFloat(val("d-lit")),tot=parseFloat(val("d-tot")),dt=val("d-date");
+window.saveFill=function(){var odo=parseFloat(val("d-odo")),lit=parseFloat(val("d-lit")),tot=parseFloat(val("d-tot")),price=parseFloat(val("d-price")),dt=val("d-date");
   if(isNaN(odo)||isNaN(lit)||lit<=0){alert("Please enter the odometer and litres.");return;}
+  if(isNaN(price)&&lit>0&&!isNaN(tot))price=tot/lit;
   var f=sortedFills();if(f.length&&odo<=f[f.length-1].odo){if(!confirm("Odometer ("+Math.round(odo)+") isn’t higher than your last reading ("+Math.round(f[f.length-1].odo)+" km). Save anyway?"))return;}
-  var at=activeTrip();mem.fills.push({id:uid(),odo:odo,litres:lit,total:isNaN(tot)?0:tot,ts:dt?new Date(dt).getTime():Date.now(),tripId:at?at.id:null,photos:[draft.odoImg,draft.pumpImg].filter(Boolean)});
+  var at=activeTrip();mem.fills.push({id:uid(),odo:odo,litres:lit,total:isNaN(tot)?0:tot,price:isNaN(price)?null:price,ts:dt?new Date(dt).getTime():Date.now(),tripId:at?at.id:null,photos:[draft.odoImg,draft.pumpImg].filter(Boolean)});
+  if(!isNaN(price)&&price>0)mem.lastPrice=price;
   save();closeScan();go("home");};
 
 /* ---------- trips ---------- */
@@ -513,7 +519,8 @@ window.editFill=function(id){var x=null;mem.fills.forEach(function(f){if(f.id===
   g.innerHTML='<div class="grip"></div><h3>Edit fill-up</h3><div class="step">'+fmtDate(x.ts)+'</div>'+
     '<label>Odometer (km)</label><input type="number" id="e-odo" value="'+x.odo+'">'+
     '<div class="two"><div><label>Litres</label><input type="number" id="e-lit" value="'+x.litres+'"></div>'+
-    '<div><label>Total paid (Rs.)</label><input type="number" id="e-tot" value="'+x.total+'"></div></div>'+
+    '<div><label>Price / litre (Rs.)</label><input type="number" id="e-price" value="'+(x.price!=null?x.price:(x.litres>0&&x.total>0?Math.round(x.total/x.litres*100)/100:""))+'"></div></div>'+
+    '<label>Total paid (Rs.)</label><input type="number" id="e-tot" value="'+x.total+'">'+
     photoBlock(x)+
     '<button class="pbtn" style="margin-top:18px" onclick="saveEdit(\''+id+'\')">Save changes</button>'+
     '<button class="dbtn" onclick="delFill(\''+id+'\')">'+ic("trash",17)+' Delete fill-up</button><button class="gbtn" onclick="closeGen()">Cancel</button>';
@@ -529,7 +536,9 @@ window.rmPhoto=function(id,i){mem.fills.forEach(function(f){if(f.id===id&&f.phot
 window.lightbox=function(id,i){var f=null;mem.fills.forEach(function(x){if(x.id===id)f=x;});if(!f||!f.photos||!f.photos[i])return;
   document.getElementById("img-big").src=f.photos[i];document.getElementById("ov-img").classList.add("on");};
 window.saveEdit=function(id){mem.fills.forEach(function(f){if(f.id===id){f.odo=parseFloat(val("e-odo"))||f.odo;
-  f.litres=parseFloat(val("e-lit"))||f.litres;f.total=parseFloat(val("e-tot"))||0;}});save();closeGen();go("history");};
+  f.litres=parseFloat(val("e-lit"))||f.litres;f.total=parseFloat(val("e-tot"))||0;
+  var pr=parseFloat(val("e-price"));if(isNaN(pr)&&f.litres>0&&f.total>0)pr=f.total/f.litres;f.price=isNaN(pr)?null:pr;
+  if(!isNaN(pr)&&pr>0)mem.lastPrice=pr;}});save();closeGen();go("history");};
 window.delFill=function(id){if(!confirm("Delete this fill-up?"))return;mem.fills=mem.fills.filter(function(f){return f.id!==id;});save();closeGen();go("history");};
 
 /* ---------- vehicle ---------- */
