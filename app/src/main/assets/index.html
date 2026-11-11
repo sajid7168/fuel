@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FuelTrack</title>
+<style>
+  :root{
+    --bg1:#eef0fb; --bg2:#f6f7fc; --bg3:#faf7fd;
+    --card:#ffffff; --tintcard:#f4f5fc;
+    --navy:#262a63; --navy2:#30356f; --navyd:#1c1f4d;
+    --ink:#1f2250; --ink2:#454a7a; --muted:#8b90b4; --dim:#a9adc9;
+    --line:#edeef7; --line2:#e3e5f2;
+    --green:#15a34a; --greenbg:#e7f7ee; --greenln:#bfe9cf;
+    --red:#e63329; --amber:#d99512; --amberbg:#fdf3dd;
+    --lav:#eceafb; --lavink:#5b4fc2;
+    --mint:#dff5ee; --mintink:#0f9b73;
+    --sky:#e4edfc; --skyink:#2f6fd0;
+    --sun:#fcf2d8; --sunink:#b5820f;
+    --pink:#fbe9f1; --pinkink:#c24d82;
+    --shadow:0 10px 28px rgba(38,42,99,.08);
+    --shadow2:0 6px 18px rgba(38,42,99,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(170deg,var(--bg1),var(--bg2) 45%,var(--bg3));color:var(--ink);line-height:1.5}
+  .app{max-width:460px;margin:0 auto;min-height:100vh;padding:0 0 92px;position:relative}
+  .screen{display:none;padding:10px 16px 0;animation:fade .25s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  svg{display:block}
+  .ir{display:inline-flex;align-items:center;justify-content:center;vertical-align:-3px}
+
+  .brand{text-align:center;padding:16px 0 10px;font-size:1.1rem;font-weight:800;color:var(--navy);
+    letter-spacing:.3px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .brand .r{color:var(--red)}
+  .brand svg{color:var(--navy)}
+
+  .vcard{background:linear-gradient(160deg,#ffffff,#f3f1fc);border-radius:26px;padding:18px;
+    box-shadow:var(--shadow);margin-bottom:14px;position:relative}
+  .vtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;
+    font-size:.78rem;font-weight:700;background:#f0f1f8;color:var(--muted)}
+  .pill.green{background:var(--greenbg);color:var(--green);border:1px solid var(--greenln)}
+  .pill .d{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 0 currentColor;animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(21,163,74,.5)}70%{box-shadow:0 0 0 7px rgba(21,163,74,0)}100%{box-shadow:0 0 0 0 rgba(21,163,74,0)}}
+  .vbody{display:flex;gap:14px;align-items:center;margin-top:8px}
+  .vimg{width:118px;height:96px;border-radius:18px;background:linear-gradient(160deg,#eef0fb,#e4e7f6);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--navy);
+    box-shadow:inset 0 2px 8px rgba(38,42,99,.07)}
+  .vinfo{flex:1;min-width:0}
+  .vinfo .nm{font-size:1.35rem;font-weight:800;color:var(--ink);line-height:1.15}
+  .vinfo .yr{font-size:.82rem;color:var(--muted);margin-bottom:8px}
+  .vmeta{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;background:#f1f2f9;color:var(--ink2);
+    padding:5px 10px;border-radius:9px;font-weight:600}
+  .chip.amber{background:var(--amberbg);color:var(--amber)}
+
+  .balcard{background:var(--card);border-radius:24px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+  .balhead{display:flex;justify-content:space-between;align-items:center}
+  .balhead .lbl{font-size:1rem;font-weight:700;color:var(--ink2)}
+  .eye{color:var(--dim);cursor:pointer;display:flex}
+  .balval{font-size:2.9rem;font-weight:800;color:var(--navy);line-height:1;margin:8px 0 2px}
+  .balval span{font-size:1.05rem;font-weight:700;color:var(--muted)}
+  .balsub{font-size:.8rem;color:var(--muted);margin-bottom:18px}
+  .pbtn{width:100%;padding:17px;border:none;border-radius:999px;font-size:1.08rem;font-weight:800;
+    background:linear-gradient(135deg,var(--navy2),var(--navy));color:#fff;cursor:pointer;
+    box-shadow:0 10px 22px rgba(38,42,99,.28);display:flex;align-items:center;justify-content:center;gap:9px}
+  .pbtn:active{transform:scale(.99)}
+  .gbtn{width:100%;padding:15px;border:none;border-radius:999px;font-size:1rem;font-weight:700;
+    background:#f2f3fa;color:var(--ink2);cursor:pointer;margin-top:11px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .dbtn{width:100%;padding:15px;border:none;border-radius:16px;font-weight:700;background:#fdecec;color:var(--red);
+    cursor:pointer;margin-top:11px;display:flex;align-items:center;justify-content:center;gap:8px}
+
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+  .ftile{background:var(--card);border-radius:20px;padding:15px;box-shadow:var(--shadow2);cursor:pointer;
+    display:flex;align-items:center;gap:12px}
+  .ftile:active{transform:scale(.985)}
+  .ficon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ftile .tt{font-size:1.02rem;font-weight:800;color:var(--ink)}
+  .ftile .ss{font-size:.72rem;color:var(--muted)}
+  .bg-lav{background:var(--lav);color:var(--lavink)} .bg-mint{background:var(--mint);color:var(--mintink)}
+  .bg-sky{background:var(--sky);color:var(--skyink)} .bg-sun{background:var(--sun);color:var(--sunink)}
+  .bg-pink{background:var(--pink);color:var(--pinkink)}
+
+  .sec{font-size:1rem;font-weight:800;color:var(--ink);margin:4px 2px 12px;
+    display:flex;justify-content:space-between;align-items:center}
+  .sec a{color:var(--skyink);font-size:.8rem;font-weight:700;cursor:pointer}
+
+  .frow{display:flex;align-items:center;gap:13px;background:var(--card);border-radius:18px;
+    padding:14px;box-shadow:var(--shadow2);margin-bottom:11px;cursor:pointer}
+  .frow .ic{width:44px;height:44px;border-radius:13px;background:var(--mint);color:var(--mintink);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .frow .mid{flex:1;min-width:0}
+  .frow .mid .t{font-size:.98rem;font-weight:700;color:var(--ink)}
+  .frow .mid .s{font-size:.76rem;color:var(--muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .frow .end{text-align:right}
+  .frow .end .kml{font-weight:800;color:var(--green);font-size:1.05rem}
+  .frow .end .c{font-size:.7rem;color:var(--muted)}
+
+  .empty{text-align:center;color:var(--dim);padding:30px 16px;font-size:.9rem;
+    background:var(--card);border-radius:20px;box-shadow:var(--shadow2)}
+  .empty .big{display:flex;justify-content:center;margin-bottom:10px;color:var(--line2)}
+
+  .tcard{background:var(--card);border-radius:22px;padding:18px;box-shadow:var(--shadow2);margin-bottom:13px;cursor:pointer}
+  .tcard.active{background:linear-gradient(155deg,#ffffff,#efeafc);box-shadow:var(--shadow)}
+  .tcard .h{display:flex;justify-content:space-between;align-items:flex-start}
+  .tcard .nm{font-size:1.1rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:7px}
+  .tcard .dt{font-size:.74rem;color:var(--muted)}
+  .badge{font-size:.66rem;padding:5px 11px;border-radius:999px;font-weight:800}
+  .badge.a{background:var(--lav);color:var(--lavink)} .badge.e{background:#f1f2f9;color:var(--muted)}
+  .tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:15px}
+  .tg .c{background:var(--tintcard);border-radius:14px;padding:12px 6px;text-align:center}
+  .tg .c .v{font-size:1.12rem;font-weight:800;color:var(--ink)}
+  .tg .c .k{font-size:.64rem;color:var(--muted);margin-top:3px}
+
+  .chartwrap{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow2);margin-bottom:14px}
+  .chartwrap .t{font-size:.92rem;font-weight:800;color:var(--ink);margin-bottom:2px}
+  .chartwrap .st{font-size:.74rem;color:var(--muted);margin-bottom:12px}
+  .chartwrap svg{width:100%}
+
+  .nav{position:fixed;bottom:0;left:0;right:0;max-width:460px;margin:0 auto;height:82px;
+    background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    display:flex;align-items:flex-start;justify-content:space-around;z-index:40;padding-top:13px;
+    box-shadow:0 -6px 22px rgba(38,42,99,.06)}
+  .ni{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--dim);
+    font-size:.68rem;font-weight:600;cursor:pointer;flex:1}
+  .ni.on{color:var(--navy);font-weight:800}
+
+  .overlay{position:fixed;inset:0;background:rgba(31,34,80,.38);backdrop-filter:blur(3px);
+    z-index:60;display:none;align-items:flex-end;justify-content:center}
+  .overlay.on{display:flex}
+  .sheet{width:100%;max-width:460px;background:#fbfbfe;border-radius:28px 28px 0 0;
+    padding:8px 20px 28px;max-height:94vh;overflow-y:auto;animation:up .3s cubic-bezier(.2,.9,.3,1)}
+  @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  .grip{width:44px;height:5px;background:var(--line2);border-radius:3px;margin:8px auto 16px}
+  .sheet h3{font-size:1.25rem;color:var(--ink)}
+  .sheet .step{font-size:.78rem;color:var(--skyink);font-weight:700;margin:3px 0 16px;display:flex;align-items:center;gap:6px}
+
+  .shot{border:2px dashed var(--line2);border-radius:18px;min-height:180px;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);
+    cursor:pointer;background:var(--card);overflow:hidden;position:relative;text-align:center;padding:16px}
+  .shot .cam{color:var(--dim)}
+  .shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .shot .tag{position:absolute;bottom:9px;right:9px;background:rgba(31,34,80,.72);color:#fff;
+    font-size:.7rem;padding:6px 11px;border-radius:999px;display:flex;align-items:center;gap:5px}
+
+  label{display:block;font-size:.8rem;color:var(--ink2);font-weight:600;margin:15px 0 6px}
+  input[type=number],input[type=text],input[type=date]{width:100%;background:var(--card);
+    border:1.5px solid var(--line2);color:var(--ink);padding:14px;border-radius:14px;font-size:1.05rem;outline:none}
+  input:focus{border-color:var(--navy2)}
+  .two{display:flex;gap:11px}.two>div{flex:1}
+
+  .calcbox{background:var(--greenbg);border:1px solid var(--greenln);border-radius:14px;padding:14px;
+    margin-top:16px;font-size:.9rem;color:#0c7a42;display:none}
+  .calcbox.show{display:block}
+  .calcbox b{color:#065f32}
+  .hint{font-size:.76rem;color:var(--muted);background:var(--tintcard);border-radius:12px;padding:11px 13px;
+    margin-top:13px;display:flex;align-items:flex-start;gap:8px}
+  .hint svg{flex-shrink:0;color:var(--sunink);margin-top:1px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== HOME ===== -->
+  <section class="screen on" id="s-home">
+    <div class="brand"><span class="ir" data-ic="fuel" data-sz="24"></span>Fuel<span class="r">Track</span></div>
+
+    <div class="vcard">
+      <div class="vtop">
+        <span class="pill" id="h-fillcount">0 fill-ups</span>
+        <span class="pill green"><span class="d"></span> TRACKING</span>
+      </div>
+      <div class="vbody">
+        <div class="vimg" data-ic="car" data-sz="62"></div>
+        <div class="vinfo">
+          <div class="nm" id="vehName">Prince Pearl</div>
+          <div class="yr" id="vehYear">2021 model</div>
+          <div class="vmeta">
+            <span class="chip" id="h-odochip"></span>
+            <span class="chip amber" id="h-bestchip"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="balcard">
+      <div class="balhead"><span class="lbl">Current average</span>
+        <span class="eye" onclick="togAvg()" id="eyeBtn"></span></div>
+      <div class="balval" id="h-avg">—<span> km/L</span></div>
+      <div class="balsub" id="h-avgsub">Add two fill-ups to see your average</div>
+      <button class="pbtn" onclick="openScan()"><span class="ir" data-ic="camera" data-sz="20"></span> Scan new fill-up</button>
+      <button class="gbtn" onclick="openScanManual()"><span class="ir" data-ic="pencil" data-sz="17"></span> Add manually</button>
+    </div>
+
+    <div class="fgrid">
+      <div class="ftile" onclick="go('trips')"><div class="ficon bg-lav" data-ic="route" data-sz="24"></div>
+        <div><div class="tt">Trips</div><div class="ss">Track journeys</div></div></div>
+      <div class="ftile" onclick="go('history')"><div class="ficon bg-sky" data-ic="receipt" data-sz="24"></div>
+        <div><div class="tt">History</div><div class="ss">All fill-ups</div></div></div>
+      <div class="ftile" onclick="go('stats')"><div class="ficon bg-mint" data-ic="chart" data-sz="24"></div>
+        <div><div class="tt">Stats</div><div class="ss">Trends</div></div></div>
+      <div class="ftile" onclick="openVehicle()"><div class="ficon bg-sun" data-ic="car" data-sz="24"></div>
+        <div><div class="tt">Vehicle</div><div class="ss">Settings</div></div></div>
+    </div>
+
+    <div id="h-tripbanner"></div>
+
+    <div class="sec">Recent fill-ups <a onclick="go('history')">See all</a></div>
+    <div id="h-recent"></div>
+  </section>
+
+  <!-- ===== TRIPS ===== -->
+  <section class="screen" id="s-trips">
+    <div class="brand" style="justify-content:space-between;padding:16px 4px 10px">
+      <span style="display:flex;align-items:center;gap:8px"><span class="ir" data-ic="route" data-sz="22"></span> Trips</span>
+      <span class="pill" style="cursor:pointer" onclick="openNewTrip()"><span class="ir" data-ic="plus" data-sz="15"></span> New trip</span>
+    </div>
+    <div id="t-active"></div>
+    <div class="sec">Past trips</div>
+    <div id="t-list"></div>
+  </section>
+
+  <!-- ===== HISTORY ===== -->
+  <section class="screen" id="s-history">
+    <div class="brand" style="justify-content:flex-start;gap:8px;padding:16px 4px 14px"><span class="ir" data-ic="receipt" data-sz="22"></span> History</div>
+    <div id="hist-list"></div>
+  </section>
+
+  <!-- ===== STATS ===== -->
+  <section class="screen" id="s-stats">
+    <div class="brand" style="justify-content:flex-start;gap:8px;padding:16px 4px 14px"><span class="ir" data-ic="chart" data-sz="22"></span> Stats</div>
+    <div id="stats-body"></div>
+  </section>
+
+  <nav class="nav">
+    <div class="ni on" id="n-home" onclick="go('home')"><span data-ic="home" data-sz="24"></span>Home</div>
+    <div class="ni" id="n-trips" onclick="go('trips')"><span data-ic="route" data-sz="24"></span>Trips</div>
+    <div class="ni" id="n-history" onclick="go('history')"><span data-ic="receipt" data-sz="24"></span>History</div>
+    <div class="ni" id="n-stats" onclick="go('stats')"><span data-ic="chart" data-sz="24"></span>Stats</div>
+  </nav>
+</div>
+
+<div class="overlay" id="ov-scan"><div class="sheet" id="scanSheet"></div></div>
+<div class="overlay" id="ov-gen"><div class="sheet" id="genSheet"></div></div>
+<input type="file" id="camInput" accept="image/*" style="display:none">
+<div class="overlay" id="ov-img" style="align-items:center;padding:24px"><img id="img-big" style="max-width:100%;max-height:88vh;border-radius:16px"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- icon set (outline, 24x24) ---------- */
+var P={
+ fuel:"<path d='M3 20h12'/><path d='M4 20v-14a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v14'/><path d='M14 9h2a2 2 0 0 1 2 2v3a1.5 1.5 0 0 0 3 0v-7l-3 -3'/><path d='M6 9h4'/>",
+ car:"<path d='M5 17a2 2 0 1 0 4 0a2 2 0 0 0 -4 0'/><path d='M15 17a2 2 0 1 0 4 0a2 2 0 0 0 -4 0'/><path d='M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5'/>",
+ route:"<path d='M6 19a2 2 0 1 0 0 -0.01'/><circle cx='6' cy='19' r='2'/><circle cx='18' cy='5' r='2'/><path d='M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5'/>",
+ receipt:"<path d='M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2z'/><path d='M9 7h6'/><path d='M9 11h6'/><path d='M9 15h4'/>",
+ chart:"<path d='M4 19l0 -6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v6'/><path d='M10 19v-10a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v10'/><path d='M16 19v-13a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v13'/><path d='M3 20h18'/>",
+ home:"<path d='M5 12l-2 0l9 -9l9 9l-2 0'/><path d='M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7'/><path d='M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6'/>",
+ eye:"<circle cx='12' cy='12' r='2'/><path d='M22 12c-2.7 4.7 -6 7 -10 7s-7.3 -2.3 -10 -7c2.7 -4.7 6 -7 10 -7s7.3 2.3 10 7'/>",
+ eyeoff:"<path d='M10.6 10.6a2 2 0 0 0 2.8 2.8'/><path d='M16.7 16.7a8.7 8.7 0 0 1 -4.7 1.3c-4 0 -7.3 -2.3 -10 -7c1.4 -2.4 2.9 -4.2 4.6 -5.3'/><path d='M9.4 5.4a9.5 9.5 0 0 1 2.6 -.4c4 0 7.3 2.3 10 7c-.8 1.4 -1.6 2.5 -2.5 3.5'/><path d='M3 3l18 18'/>",
+ camera:"<path d='M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2'/><circle cx='12' cy='13' r='3'/>",
+ pencil:"<path d='M4 20h4l10.5 -10.5a2.83 2.83 0 1 0 -4 -4l-10.5 10.5v4'/><path d='M13.5 6.5l4 4'/>",
+ gauge:"<circle cx='12' cy='13' r='1'/><path d='M13.4 11.6l2.1 -2.1'/><path d='M3.6 15a9 9 0 1 1 16.8 0'/>",
+ trophy:"<path d='M8 21h8'/><path d='M12 17v4'/><path d='M7 4h10'/><path d='M17 4v8a5 5 0 0 1 -10 0v-8'/><path d='M5 9a2 2 0 0 1 -2 -2v-1a1 1 0 0 1 1 -1h2'/><path d='M19 9a2 2 0 0 0 2 -2v-1a1 1 0 0 0 -1 -1h-2'/>",
+ trend:"<path d='M3 17l6 -6l4 4l8 -8'/><path d='M14 7h7v7'/>",
+ road:"<path d='M4 19l4 -14'/><path d='M16 5l4 14'/><path d='M12 5v2'/><path d='M12 11v2'/><path d='M12 17v2'/>",
+ wallet:"<path d='M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12'/><path d='M20 12v4h-4a2 2 0 0 1 0 -4h4'/>",
+ plus:"<path d='M12 5v14'/><path d='M5 12h14'/>",
+ check:"<path d='M5 12l5 5l10 -11'/>",
+ refresh:"<path d='M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4'/><path d='M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4'/>",
+ bulb:"<path d='M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7'/><path d='M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3'/><path d='M9.7 17h4.6'/>",
+ trash:"<path d='M4 7h16'/><path d='M10 11v6'/><path d='M14 11v6'/><path d='M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12'/><path d='M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3'/>",
+ image:"<path d='M15 8h.01'/><path d='M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1'/><path d='M4 15l4 -4a1.5 1.5 0 0 1 2 0l4 4'/><path d='M14 14l1 -1a1.5 1.5 0 0 1 2 0l3 3'/>"
+};
+function ic(name,size){size=size||22;return '<svg viewBox="0 0 24 24" width="'+size+'" height="'+size+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(P[name]||"")+'</svg>';}
+function fillIcons(root){(root||document).querySelectorAll('[data-ic]').forEach(function(el){
+  el.innerHTML=ic(el.getAttribute('data-ic'),parseInt(el.getAttribute('data-sz'),10)||22);el.removeAttribute('data-ic');});}
+
+/* ---------- storage ---------- */
+var KEY="fueltrack_light_v2";
+var mem={fills:[],trips:[],vehicle:{name:"Prince Pearl",year:"2021"}};
+function load(){try{var r=localStorage.getItem(KEY);if(r)mem=JSON.parse(r);}catch(e){}
+  if(!mem.fills)mem.fills=[];if(!mem.trips)mem.trips=[];if(!mem.vehicle)mem.vehicle={name:"Prince Pearl",year:"2021"};}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(mem));}catch(e){}}
+load();
+var avgHidden=false;
+
+function rs(n){return "Rs. "+Math.round(n).toLocaleString();}
+function rsShort(n){return "Rs."+Math.round(n).toLocaleString();}
+function sortedFills(){return mem.fills.slice().sort(function(a,b){return a.odo-b.odo;});}
+function activeTrip(){for(var i=0;i<mem.trips.length;i++)if(mem.trips[i].active)return mem.trips[i];return null;}
+function tripById(id){for(var i=0;i<mem.trips.length;i++)if(mem.trips[i].id===id)return mem.trips[i];return null;}
+function fmtDate(ts){return new Date(ts).toLocaleDateString(undefined,{day:"numeric",month:"short"});}
+function overall(){var f=sortedFills(),dist=0,fuel=0;
+  for(var i=1;i<f.length;i++){var d=f[i].odo-f[i-1].odo;if(d>0){dist+=d;fuel+=f[i].litres;}}
+  return {dist:dist,fuel:fuel,avg:fuel>0?dist/fuel:null};}
+function segKml(fill){var f=sortedFills();for(var i=0;i<f.length;i++){if(f[i].id===fill.id){
+  if(i===0)return null;var d=f[i].odo-f[i-1].odo;return d>0?d/f[i].litres:null;}}return null;}
+function sumTotalsAfterFirst(){var f=sortedFills(),s=0;for(var i=1;i<f.length;i++)s+=f[i].total;return s;}
+
+window.go=function(name){
+  ["home","trips","history","stats"].forEach(function(s){
+    document.getElementById("s-"+s).classList.toggle("on",s===name);
+    var n=document.getElementById("n-"+s);if(n)n.classList.toggle("on",s===name);});
+  if(name==="home")renderHome();if(name==="trips")renderTrips();
+  if(name==="history")renderHistory();if(name==="stats")renderStats();
+  window.scrollTo(0,0);};
+window.togAvg=function(){avgHidden=!avgHidden;renderHome();};
+
+function renderHome(){
+  document.getElementById("vehName").textContent=mem.vehicle.name;
+  document.getElementById("vehYear").textContent=(mem.vehicle.year||"")+" model";
+  var f=sortedFills(),o=overall();
+  document.getElementById("h-fillcount").textContent=f.length+" fill-up"+(f.length===1?"":"s");
+  var last=f[f.length-1];
+  document.getElementById("h-odochip").innerHTML=ic("gauge",14)+'<span>Odo: '+(last?Math.round(last.odo).toLocaleString():"—")+'</span>';
+  var segs=[];for(var i=1;i<f.length;i++){var d=f[i].odo-f[i-1].odo;if(d>0)segs.push(d/f[i].litres);}
+  document.getElementById("h-bestchip").innerHTML=ic("trophy",14)+'<span>Best: '+(segs.length?Math.max.apply(null,segs).toFixed(1):"—")+' km/L</span>';
+  document.getElementById("eyeBtn").innerHTML=ic(avgHidden?"eyeoff":"eye",22);
+  document.getElementById("h-avg").innerHTML=avgHidden?'••<span> km/L</span>':((o.avg?o.avg.toFixed(1):"—")+'<span> km/L</span>');
+  document.getElementById("h-avgsub").textContent=o.avg?("over "+Math.round(o.dist).toLocaleString()+" km · "+rsShort(o.dist>0?sumTotalsAfterFirst()/o.dist:0)+"/km"):"Add two fill-ups to see your average";
+
+  var tb=document.getElementById("h-tripbanner"),at=activeTrip();
+  tb.innerHTML=at?('<div class="sec">Active trip</div>'+tripCard(at,true)):"";
+  var rec=document.getElementById("h-recent");
+  rec.innerHTML=f.length?f.slice(-3).reverse().map(fillRow).join(""):
+    '<div class="empty"><div class="big">'+ic("fuel",40)+'</div>No fill-ups yet.<br>Tap “Scan new fill-up” to start.</div>';
+}
+function fillRow(x){var k=segKml(x),trip=x.tripId?tripById(x.tripId):null;
+  return '<div class="frow" onclick="editFill(\''+x.id+'\')"><div class="ic">'+ic("fuel",22)+'</div><div class="mid">'+
+    '<div class="t">'+x.litres.toFixed(1)+' L · '+rs(x.total)+'</div>'+
+    '<div class="s"><span>'+fmtDate(x.ts)+'</span>·<span>'+Math.round(x.odo).toLocaleString()+' km</span>'+
+      (trip?'·'+ic("route",12)+'<span>'+esc(trip.name)+'</span>':'')+
+      (x.photos&&x.photos.length?'·'+ic("image",12)+'<span>'+x.photos.length+'</span>':'')+'</div></div>'+
+    '<div class="end"><div class="kml">'+(k?k.toFixed(1):"—")+'</div><div class="c">km/L</div></div></div>';}
+
+function tripStats(t){var fills=mem.fills.filter(function(x){return x.tripId===t.id;});
+  var cost=0,fuel=0,lastOdo=t.startOdo;
+  fills.forEach(function(x){cost+=x.total;fuel+=x.litres;if(x.odo>lastOdo)lastOdo=x.odo;});
+  var dist=lastOdo-t.startOdo;
+  return {dist:dist>0?dist:0,fuel:fuel,cost:cost,count:fills.length,avg:(dist>0&&fuel>0)?dist/fuel:null};}
+function renderTrips(){var at=activeTrip();
+  document.getElementById("t-active").innerHTML=at?tripCard(at,true):
+    '<div class="empty"><div class="big">'+ic("route",40)+'</div>No active trip.<br>Tap “New trip” to start one.</div>';
+  var past=mem.trips.filter(function(t){return !t.active;}).reverse();
+  document.getElementById("t-list").innerHTML=past.length?past.map(function(t){return tripCard(t,false);}).join(""):
+    '<div class="empty" style="padding:22px">No past trips yet.</div>';}
+function tripCard(t,active){var s=tripStats(t);
+  return '<div class="tcard '+(active?"active":"")+'" onclick="openTrip(\''+t.id+'\')"><div class="h"><div>'+
+    '<div class="nm">'+ic("route",18)+esc(t.name)+'</div><div class="dt">'+(active?"Started ":"")+fmtDate(t.startTs)+(t.endTs?" – "+fmtDate(t.endTs):"")+'</div></div>'+
+    '<span class="badge '+(active?"a":"e")+'">'+(active?"ACTIVE":"ENDED")+'</span></div>'+
+    '<div class="tg"><div class="c"><div class="v">'+Math.round(s.dist).toLocaleString()+'</div><div class="k">km</div></div>'+
+    '<div class="c"><div class="v">'+(s.avg?s.avg.toFixed(1):"—")+'</div><div class="k">km/L avg</div></div>'+
+    '<div class="c"><div class="v">'+rsShort(s.cost)+'</div><div class="k">fuel cost</div></div></div></div>';}
+
+function renderHistory(){var f=sortedFills().reverse();
+  document.getElementById("hist-list").innerHTML=f.length?f.map(fillRow).join(""):
+    '<div class="empty"><div class="big">'+ic("receipt",40)+'</div>No fill-ups logged yet.</div>';}
+
+function renderStats(){var body=document.getElementById("stats-body"),f=sortedFills();
+  if(f.length<2){body.innerHTML='<div class="empty"><div class="big">'+ic("chart",40)+'</div>Log at least two fill-ups<br>to see your trends.</div>';return;}
+  var segs=[];for(var i=1;i<f.length;i++){var d=f[i].odo-f[i-1].odo;if(d>0)segs.push(d/f[i].litres);}
+  var o=overall();
+  var html='<div class="fgrid">'+
+    statTile("Best tank",Math.max.apply(null,segs).toFixed(1)+" km/L","bg-mint","trophy")+
+    statTile("Lifetime avg",(o.avg?o.avg.toFixed(1):"—")+" km/L","bg-sky","trend")+
+    statTile("Distance",Math.round(o.dist).toLocaleString()+" km","bg-lav","road")+
+    statTile("Fuel spent",rsShort(sumTotalsAfterFirst()),"bg-sun","wallet")+'</div>';
+  html+='<div class="chartwrap"><div class="t">Average per tank</div><div class="st">km/L across your fills</div>'+lineChart(segs)+'</div>';
+  html+='<div class="chartwrap"><div class="t">Fuel spend by month</div><div class="st">total rupees per month</div>'+barChart(monthSeries())+'</div>';
+  body.innerHTML=html;}
+function statTile(k,v,bg,icon){return '<div class="ftile"><div class="ficon '+bg+'">'+ic(icon,24)+'</div><div><div class="tt" style="font-size:.95rem">'+v+'</div><div class="ss">'+k+'</div></div></div>';}
+function monthSeries(){var m={};mem.fills.forEach(function(x){var d=new Date(x.ts);var k=d.getFullYear()+"-"+(d.getMonth()+1);
+  if(!m[k])m[k]={label:d.toLocaleDateString(undefined,{month:"short"}),v:0};m[k].v+=x.total;});
+  return Object.keys(m).map(function(k){return m[k];}).slice(-6);}
+function lineChart(vals){if(vals.length<2)return '<div style="color:var(--dim);text-align:center;padding:18px">Need more data</div>';
+  var W=400,H=140,p=24,max=Math.max.apply(null,vals)*1.1,min=Math.min.apply(null,vals)*0.9;
+  var pts=vals.map(function(v,i){var x=p+(W-2*p)*i/(vals.length-1);var y=H-p-(H-2*p)*(v-min)/(max-min||1);return [x,y];});
+  var d=pts.map(function(pt,i){return (i?"L":"M")+pt[0].toFixed(1)+" "+pt[1].toFixed(1);}).join(" ");
+  var area=d+" L"+pts[pts.length-1][0].toFixed(1)+" "+(H-p)+" L"+p+" "+(H-p)+" Z";
+  var dots=pts.map(function(pt){return '<circle cx="'+pt[0].toFixed(1)+'" cy="'+pt[1].toFixed(1)+'" r="3.5" fill="#262a63"/>';}).join("");
+  return '<svg viewBox="0 0 '+W+' '+H+'"><path d="'+area+'" fill="#e4edfc"/><path d="'+d+'" fill="none" stroke="#2f6fd0" stroke-width="2.5" stroke-linejoin="round"/>'+dots+'</svg>';}
+function barChart(series){if(!series.length)return "";
+  var W=400,H=150,p=28,bw=(W-2*p)/series.length*0.55,gap=(W-2*p)/series.length;
+  var max=Math.max.apply(null,series.map(function(s){return s.v;}))*1.15||1;
+  var bars=series.map(function(s,i){var h=(H-2*p)*s.v/max,x=p+gap*i+(gap-bw)/2,y=H-p-h;
+    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="5" fill="#8b84e8"/>'+
+    '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-9)+'" fill="#8b90b4" font-size="11" text-anchor="middle">'+s.label+'</text>';}).join("");
+  return '<svg viewBox="0 0 '+W+' '+H+'">'+bars+'</svg>';}
+
+/* ---------- scan ---------- */
+var draft=null,ocrStatus={odo:"",pump:""},curStep=1;
+function ocrNote(tag){return ocrStatus[tag]?'<div class="hint" style="color:var(--skyink)"><span>'+ocrStatus[tag]+'</span></div>':'';}
+window.openScan=function(){startDraft();scanStep(1);document.getElementById("ov-scan").classList.add("on");};
+window.openScanManual=function(){startDraft();scanStep(3);document.getElementById("ov-scan").classList.add("on");};
+function startDraft(){var f=sortedFills(),prev=f.length?f[f.length-1]:null;ocrStatus={odo:"",pump:""};
+  draft={odoImg:null,pumpImg:null,odo:"",litres:"",total:"",ts:Date.now(),prevOdo:prev?prev.odo:null};}
+function closeScan(){document.getElementById("ov-scan").classList.remove("on");draft=null;}
+window.closeScanWrap=closeScan;
+function scanStep(n){curStep=n;var s=document.getElementById("scanSheet");
+  if(n===1){s.innerHTML='<div class="grip"></div><h3>Scan odometer</h3><div class="step">'+ic("camera",16)+'Step 1 of 3 · snap your car’s km reading</div>'+
+    shotBox("odo")+ocrNote("odo")+'<div class="hint">'+ic("bulb",16)+'<span>Frame the number panel with the whole reading in focus.</span></div>'+
+    '<button class="pbtn" style="margin-top:18px" '+(draft.odoImg?"":"disabled")+' onclick="scanStep(2)">Next: pump →</button>'+
+    '<button class="gbtn" onclick="closeScanWrap()">Cancel</button>';}
+  else if(n===2){s.innerHTML='<div class="grip"></div><h3>Scan the pump</h3><div class="step">'+ic("camera",16)+'Step 2 of 3 · snap the petrol pump display</div>'+
+    shotBox("pump")+ocrNote("pump")+'<div class="hint">'+ic("bulb",16)+'<span>Capture the litres and total amount paid. The app works out the rate.</span></div>'+
+    '<button class="pbtn" style="margin-top:18px" '+(draft.pumpImg?"":"disabled")+' onclick="scanStep(3)">Next: confirm →</button>'+
+    '<button class="gbtn" onclick="scanStep(1)">← Back</button>';}
+  else{var at=activeTrip(),scanned=(draft.odoImg||draft.pumpImg);
+    s.innerHTML='<div class="grip"></div><h3>Confirm readings</h3>'+
+      '<div class="step">'+(scanned?ic("check",16)+'Auto-read from your photos · tap any value to fix':ic("pencil",15)+'Enter your fill-up details')+'</div>'+
+      '<label>Odometer (km)</label><input type="number" id="d-odo" inputmode="decimal" value="'+draft.odo+'" placeholder="e.g. 12250" oninput="recalc()">'+
+      '<div class="two"><div><label>Litres filled</label><input type="number" id="d-lit" inputmode="decimal" value="'+draft.litres+'" placeholder="e.g. 14.1" oninput="recalc()"></div>'+
+      '<div><label>Total paid (Rs.)</label><input type="number" id="d-tot" inputmode="decimal" value="'+draft.total+'" placeholder="e.g. 3948" oninput="recalc()"></div></div>'+
+      '<label>Date</label><input type="date" id="d-date" value="'+new Date(draft.ts).toISOString().slice(0,10)+'">'+
+      (at?'<div class="hint">'+ic("route",16)+'<span>Added to active trip: <b style="color:var(--lavink)">'+esc(at.name)+'</b></span></div>':'')+
+      '<div class="calcbox" id="d-calc"></div>'+
+      '<button class="pbtn" style="margin-top:18px" onclick="saveFill()">Save fill-up</button>'+
+      '<button class="gbtn" onclick="'+(scanned?'scanStep(2)':'closeScanWrap()')+'">'+(scanned?'← Back':'Cancel')+'</button>';
+    setTimeout(recalc,30);}}
+window.scanStep=scanStep;
+function shotBox(which){var img=which==="odo"?draft.odoImg:draft.pumpImg;
+  if(img)return '<div class="shot" onclick="pick(\''+which+'\')"><img src="'+img+'"><div class="tag">'+ic("refresh",14)+' Retake</div></div>';
+  return '<div class="shot" onclick="pick(\''+which+'\')"><div class="cam">'+ic("camera",44)+'</div><div>Tap to open camera</div></div>';}
+var pickWhich=null;
+window.pick=function(which){pickWhich=which;document.getElementById("camInput").click();};
+function resizeImg(src,cb){var img=new Image();img.onload=function(){var mx=1000,w=img.width,h=img.height;
+  if(w>h&&w>mx){h=Math.round(h*mx/w);w=mx;}else if(h>mx){w=Math.round(w*mx/h);h=mx;}
+  var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
+  try{cb(c.toDataURL("image/jpeg",0.7));}catch(e){cb(src);}};img.onerror=function(){cb(src);};img.src=src;}
+document.getElementById("camInput").addEventListener("change",function(e){var file=e.target.files[0];e.target.value="";if(!file)return;
+  var rd=new FileReader();rd.onload=function(ev){resizeImg(ev.target.result,applyPhoto);};rd.readAsDataURL(file);});
+function applyPhoto(data){
+  if(pickWhich==="odo"){if(!draft)return;draft.odoImg=data;scanStep(1);requestOCR(data,"odo");}
+  else if(pickWhich==="pump"){if(!draft)return;draft.pumpImg=data;scanStep(2);requestOCR(data,"pump");}
+  else if(pickWhich&&pickWhich.indexOf("add:")===0){var id=pickWhich.slice(4);
+    mem.fills.forEach(function(f){if(f.id===id){f.photos=f.photos||[];f.photos.push(data);}});save();editFill(id);}}
+function requestOCR(data,tag){if(!window.AndroidOCR||!window.AndroidOCR.recognize)return;
+  ocrStatus[tag]="⏳ Reading the numbers…";if(curStep===(tag==="odo"?1:2))scanStep(curStep);
+  try{window.AndroidOCR.recognize(data,tag);}catch(e){ocrStatus[tag]="";}}
+function parseOdo(t){var g=(String(t).replace(/[,\s]/g,'').match(/\d{3,7}/g)||[]);if(!g.length)return null;
+  g.sort(function(a,b){return b.length-a.length||Number(b)-Number(a);});return Number(g[0]);}
+function parsePump(t){var nums=(String(t).match(/\d+(?:\.\d+)?/g)||[]).map(Number).filter(function(n){return n>0;});
+  var total=null,litres=null;if(nums.length)total=Math.max.apply(null,nums);
+  var cand=nums.filter(function(n){return n>0&&n<=70;});
+  if(cand.length){var dec=cand.filter(function(n){return n%1!==0;});litres=dec.length?Math.max.apply(null,dec):Math.max.apply(null,cand);}
+  if(litres===total)litres=null;return {litres:litres,total:total};}
+window.__ocrResult=function(tag,text){
+  if(!draft)return;
+  if(tag==="odo"){var n=parseOdo(text);
+    if(n!=null){draft.odo=String(n);ocrStatus.odo="✓ Read: "+n+" — confirm on next screen";}
+    else ocrStatus.odo="Couldn’t read it clearly — type it in";
+    if(curStep===1)scanStep(1);
+    if(curStep===3&&document.getElementById("d-odo")&&draft.odo){document.getElementById("d-odo").value=draft.odo;recalc();}}
+  else if(tag==="pump"){var p=parsePump(text),got=[];
+    if(p.litres!=null){draft.litres=String(p.litres);got.push(p.litres+" L");}
+    if(p.total!=null){draft.total=String(p.total);got.push("Rs."+p.total);}
+    ocrStatus.pump=got.length?("✓ Read: "+got.join(" · ")+" — confirm next"):"Couldn’t read it clearly — type it in";
+    if(curStep===2)scanStep(2);
+    if(curStep===3){if(document.getElementById("d-lit")&&draft.litres)document.getElementById("d-lit").value=draft.litres;
+      if(document.getElementById("d-tot")&&draft.total)document.getElementById("d-tot").value=draft.total;recalc();}}
+};
+window.recalc=function(){var odo=parseFloat(val("d-odo")),lit=parseFloat(val("d-lit")),tot=parseFloat(val("d-tot"));
+  var box=document.getElementById("d-calc");if(!box)return;
+  if(isNaN(lit)||lit<=0||isNaN(odo)){box.classList.remove("show");return;}
+  var rate=(!isNaN(tot)&&tot>0)?tot/lit:null,txt="";
+  if(draft.prevOdo!=null&&odo>draft.prevOdo){var d=odo-draft.prevOdo;txt='This tank: <b>'+(d/lit).toFixed(1)+' km/L</b> over '+Math.round(d)+' km';
+    if(rate)txt+=' · <b>Rs.'+(tot/d).toFixed(1)+'/km</b>';}
+  else txt=draft.prevOdo==null?'First entry — this sets your starting odometer.':'Odometer should be above your last ('+Math.round(draft.prevOdo).toLocaleString()+' km).';
+  if(rate)txt+='<br><span style="color:#2f6fd0">Rate: Rs.'+rate.toFixed(1)+'/L</span>';
+  box.innerHTML=txt;box.classList.add("show");};
+window.saveFill=function(){var odo=parseFloat(val("d-odo")),lit=parseFloat(val("d-lit")),tot=parseFloat(val("d-tot")),dt=val("d-date");
+  if(isNaN(odo)||isNaN(lit)||lit<=0){alert("Please enter the odometer and litres.");return;}
+  var f=sortedFills();if(f.length&&odo<=f[f.length-1].odo){if(!confirm("Odometer ("+Math.round(odo)+") isn’t higher than your last reading ("+Math.round(f[f.length-1].odo)+" km). Save anyway?"))return;}
+  var at=activeTrip();mem.fills.push({id:uid(),odo:odo,litres:lit,total:isNaN(tot)?0:tot,ts:dt?new Date(dt).getTime():Date.now(),tripId:at?at.id:null,photos:[draft.odoImg,draft.pumpImg].filter(Boolean)});
+  save();closeScan();go("home");};
+
+/* ---------- trips ---------- */
+window.openNewTrip=function(){var f=sortedFills(),lastOdo=f.length?f[f.length-1].odo:"",g=document.getElementById("genSheet");
+  if(activeTrip()){g.innerHTML='<div class="grip"></div><h3>A trip is already active</h3><div class="step">End your current trip before starting a new one.</div><button class="gbtn" onclick="closeGen()">OK</button>';openGen();return;}
+  g.innerHTML='<div class="grip"></div><h3>Start a trip</h3><div class="step">'+ic("route",15)+'Fill-ups you log will be tracked under this trip</div>'+
+    '<label>Trip name</label><input type="text" id="nt-name" placeholder="e.g. Lahore → Islamabad">'+
+    '<label>Starting odometer (km)</label><input type="number" id="nt-odo" inputmode="decimal" value="'+lastOdo+'" placeholder="e.g. 12250">'+
+    '<button class="pbtn" style="margin-top:18px" onclick="startTrip()">Start trip</button><button class="gbtn" onclick="closeGen()">Cancel</button>';
+  openGen();};
+window.startTrip=function(){var nm=val("nt-name").trim(),odo=parseFloat(val("nt-odo"));
+  if(!nm){alert("Give your trip a name.");return;}if(isNaN(odo)){alert("Enter the starting odometer.");return;}
+  mem.trips.push({id:uid(),name:nm,startOdo:odo,active:true,startTs:Date.now(),endTs:null});save();closeGen();go("trips");};
+window.openTrip=function(id){var t=tripById(id);if(!t)return;var s=tripStats(t);
+  var fills=mem.fills.filter(function(x){return x.tripId===id;}).sort(function(a,b){return a.odo-b.odo;});var g=document.getElementById("genSheet");
+  g.innerHTML='<div class="grip"></div><h3>'+esc(t.name)+'</h3><div class="step">'+(t.active?"Active trip":"Ended")+' · started '+fmtDate(t.startTs)+'</div>'+
+    '<div class="tg" style="grid-template-columns:1fr 1fr">'+
+    '<div class="c"><div class="v">'+Math.round(s.dist).toLocaleString()+'</div><div class="k">km covered</div></div>'+
+    '<div class="c"><div class="v">'+s.fuel.toFixed(1)+'</div><div class="k">litres used</div></div>'+
+    '<div class="c"><div class="v">'+(s.avg?s.avg.toFixed(1):"—")+'</div><div class="k">km/L average</div></div>'+
+    '<div class="c"><div class="v">'+rsShort(s.cost)+'</div><div class="k">fuel cost</div></div></div>'+
+    '<div class="sec" style="margin-top:18px">Fill-ups in this trip</div>'+
+    (fills.length?fills.map(fillRow).join(""):'<div class="empty" style="padding:16px">No fill-ups yet.</div>')+
+    (t.active?'<button class="pbtn" style="margin-top:16px" onclick="endTrip(\''+id+'\')">End trip</button>':'<button class="pbtn" style="margin-top:16px" onclick="resumeTrip(\''+id+'\')">'+ic("refresh",17)+' Resume trip</button>')+
+    '<button class="dbtn" onclick="delTrip(\''+id+'\')">'+ic("trash",17)+' Delete trip</button><button class="gbtn" onclick="closeGen()">Close</button>';
+  openGen();};
+window.endTrip=function(id){var t=tripById(id);if(t){t.active=false;t.endTs=Date.now();save();}closeGen();go("trips");};
+window.resumeTrip=function(id){if(activeTrip()){alert("End your current active trip before resuming another one.");return;}
+  var t=tripById(id);if(t){t.active=true;t.endTs=null;save();}closeGen();go("trips");};
+window.delTrip=function(id){if(!confirm("Delete this trip? Fill-ups stay in your history."))return;
+  mem.fills.forEach(function(x){if(x.tripId===id)x.tripId=null;});mem.trips=mem.trips.filter(function(t){return t.id!==id;});save();closeGen();go("trips");};
+
+/* ---------- edit fill ---------- */
+window.editFill=function(id){var x=null;mem.fills.forEach(function(f){if(f.id===id)x=f;});if(!x)return;var g=document.getElementById("genSheet");
+  g.innerHTML='<div class="grip"></div><h3>Edit fill-up</h3><div class="step">'+fmtDate(x.ts)+'</div>'+
+    '<label>Odometer (km)</label><input type="number" id="e-odo" value="'+x.odo+'">'+
+    '<div class="two"><div><label>Litres</label><input type="number" id="e-lit" value="'+x.litres+'"></div>'+
+    '<div><label>Total paid (Rs.)</label><input type="number" id="e-tot" value="'+x.total+'"></div></div>'+
+    photoBlock(x)+
+    '<button class="pbtn" style="margin-top:18px" onclick="saveEdit(\''+id+'\')">Save changes</button>'+
+    '<button class="dbtn" onclick="delFill(\''+id+'\')">'+ic("trash",17)+' Delete fill-up</button><button class="gbtn" onclick="closeGen()">Cancel</button>';
+  openGen();};
+function photoBlock(x){var ph=x.photos||[];
+  var thumbs=ph.map(function(p,i){return '<div style="position:relative;display:inline-block;margin:8px 8px 0 0">'+
+    '<img src="'+p+'" onclick="lightbox(\''+x.id+'\','+i+')" style="width:72px;height:72px;object-fit:cover;border-radius:12px;border:1px solid var(--line2)">'+
+    '<span onclick="rmPhoto(\''+x.id+'\','+i+')" style="position:absolute;top:-7px;right:-7px;background:#fff;border:1px solid var(--line2);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:var(--red);font-weight:700">×</span></div>';}).join("");
+  return '<label>Meter photos</label><div>'+(thumbs||'<span style="font-size:.8rem;color:var(--muted)">None yet — add the odometer or pump photo</span>')+'</div>'+
+    '<button class="gbtn" style="margin-top:10px" onclick="addPhoto(\''+x.id+'\')">'+ic("image",17)+' Add / upload photo</button>';}
+window.addPhoto=function(id){pickWhich="add:"+id;document.getElementById("camInput").click();};
+window.rmPhoto=function(id,i){mem.fills.forEach(function(f){if(f.id===id&&f.photos)f.photos.splice(i,1);});save();editFill(id);};
+window.lightbox=function(id,i){var f=null;mem.fills.forEach(function(x){if(x.id===id)f=x;});if(!f||!f.photos||!f.photos[i])return;
+  document.getElementById("img-big").src=f.photos[i];document.getElementById("ov-img").classList.add("on");};
+window.saveEdit=function(id){mem.fills.forEach(function(f){if(f.id===id){f.odo=parseFloat(val("e-odo"))||f.odo;
+  f.litres=parseFloat(val("e-lit"))||f.litres;f.total=parseFloat(val("e-tot"))||0;}});save();closeGen();go("history");};
+window.delFill=function(id){if(!confirm("Delete this fill-up?"))return;mem.fills=mem.fills.filter(function(f){return f.id!==id;});save();closeGen();go("history");};
+
+/* ---------- vehicle ---------- */
+window.openVehicle=function(){var g=document.getElementById("genSheet");
+  g.innerHTML='<div class="grip"></div><h3>Your vehicle</h3><div class="step">'+ic("car",15)+'Shown on your dashboard</div>'+
+    '<label>Name</label><input type="text" id="v-name" value="'+esc(mem.vehicle.name)+'">'+
+    '<label>Year</label><input type="text" id="v-year" value="'+esc(mem.vehicle.year||"")+'">'+
+    '<button class="pbtn" style="margin-top:18px" onclick="saveVehicle()">Save</button>'+
+    '<button class="dbtn" onclick="resetAll()">'+ic("trash",17)+' Reset all data</button><button class="gbtn" onclick="closeGen()">Close</button>';
+  openGen();};
+window.saveVehicle=function(){mem.vehicle.name=val("v-name")||"My Car";mem.vehicle.year=val("v-year");save();closeGen();go("home");};
+window.resetAll=function(){if(!confirm("Erase all fill-ups and trips? This can’t be undone."))return;mem={fills:[],trips:[],vehicle:mem.vehicle};save();closeGen();go("home");};
+
+function openGen(){fillIcons(document.getElementById("genSheet"));document.getElementById("ov-gen").classList.add("on");}
+window.closeGen=function(){document.getElementById("ov-gen").classList.remove("on");};
+document.getElementById("ov-scan").addEventListener("click",function(e){if(e.target===this)closeScan();});
+document.getElementById("ov-gen").addEventListener("click",function(e){if(e.target===this)closeGen();});
+document.getElementById("ov-img").addEventListener("click",function(){this.classList.remove("on");});
+
+function val(id){var e=document.getElementById(id);return e?e.value:"";}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+fillIcons();
+renderHome();
+})();
+</script>
+</body>
+</html>
